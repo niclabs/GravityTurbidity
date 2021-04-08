@@ -1,0 +1,19 @@
+#######################################
+# Syntax Coloring Map For GravityTurbidity
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+GravityTurbidity	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+getTurbidity	KEYWORD2
+setLowCalibrationPoint	KEYWORD2
+setHighCalibrationPoint	KEYWORD2
+calibrate	KEYWORD2
+
