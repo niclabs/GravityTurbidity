@@ -35,18 +35,18 @@ GravityTurbidity::GravityTurbidity(int device) {
     this->mem_offset = device*DEVICE_MEM_OFFSET;
 }
 
-void GravityTurbidity::setLowCalibrationPoint(int analog, double ntu) {
+void GravityTurbidity::setLowCalibrationPoint(int analog, float ntu) {
     this->low_turbidity_analog = analog;
     this->low_turbidity_ntu = ntu;
 }
 
-void GravityTurbidity::setHighCalibrationPoint(int analog, double ntu) {
+void GravityTurbidity::setHighCalibrationPoint(int analog, float ntu) {
     this->high_turbidity_analog = analog;
     this->high_turbidity_ntu = ntu;
 }
 
-void GravityTurbidity::calibrate(int *analog_values, double *ntu_values, int n,
-                                      double *A, double *alpha) {
+void GravityTurbidity::calibrate(int *analog_values, float *ntu_values, int n,
+                                      float *A, float *alpha) {
     /* Inputs
      *  - analog_values: array of length n
      *  - ntu_values: array of length n
@@ -68,21 +68,21 @@ void GravityTurbidity::calibrate(int *analog_values, double *ntu_values, int n,
     for (int i=0; i<n; i++) {
         ntu_values[i] = log(ntu_values[i]);
     }
-    double slope, intercept;
+    float slope, intercept;
     linear_fit_id(analog_values, ntu_values, n, &slope, &intercept);
     *A = exp(intercept);
     *alpha = slope;
 }
 
-void GravityTurbidity::calibrate(int *analog_values, double *ntu_values, int n) {
+void GravityTurbidity::calibrate(int *analog_values, float *ntu_values, int n) {
     // Calls `calibrate` storing the values to member A and alpha
     calibrate(analog_values, ntu_values, n, &(this->A), &(this->alpha));
 }
 
-void GravityTurbidity::calibrate(double *A, double *alpha) {
+void GravityTurbidity::calibrate(float *A, float *alpha) {
     // Calls `calibrate` reading sample values from
     // the two calibrations point already set.
-    double ntu_values[] = {low_turbidity_ntu, high_turbidity_ntu};
+    float ntu_values[] = {low_turbidity_ntu, high_turbidity_ntu};
     int analog_values[] = {low_turbidity_analog, high_turbidity_analog};
     calibrate(analog_values, ntu_values, 2, A, alpha);
 }
@@ -91,12 +91,12 @@ void GravityTurbidity::calibrate() {
     calibrate(&(this->A), &(this->alpha));
 }
 
-double GravityTurbidity::getTurbidity(double A, double alpha, int analog) {
+float GravityTurbidity::getTurbidity(float A, float alpha, int analog) {
     // Returns a value in NTU
     return A*exp(alpha*analog);
 }
 
-double GravityTurbidity::getTurbidity(int analog) {
+float GravityTurbidity::getTurbidity(int analog) {
     return getTurbidity(A, alpha, analog);
 }
 
@@ -152,9 +152,9 @@ bool GravityTurbidity::saveCalibration() {
 
 // private
 
-void GravityTurbidity::linear_fit_id(int *xs, double *ys, int n,
-                            double *slope, double *intercept) {
-    /* linear_fit for (i)nt xs and (d)ouble ys
+void GravityTurbidity::linear_fit_if(int *xs, float *ys, int n,
+                            float *slope, float *intercept) {
+    /* linear_fit for (i)nt xs and (f)loat ys
      * https://www.u-cursos.cl/usuario/125f006b1dcdd406c6c85298a6a14229/mi_blog/r/Apunte_Metodos_Experimentales.pdf
      * (p. 76)
      *
@@ -167,17 +167,17 @@ void GravityTurbidity::linear_fit_id(int *xs, double *ys, int n,
      *  - intercept
      *  */
 
-    double sum_xy = 0;
+    float sum_xy = 0;
     long sum_x = 0;
     long sum_x2 = 0;
-    double sum_y = 0;
+    float sum_y = 0;
     for (int i=0; i<n; i++) {
         sum_xy += xs[i]*ys[i];
         sum_x += xs[i];
         sum_x2 += xs[i]*xs[i];
         sum_y += ys[i];
     }
-    *slope = (sum_xy/sum_x - sum_y/n)/((double)sum_x2/sum_x - sum_x/n);
+    *slope = (sum_xy/sum_x - sum_y/n)/((float)sum_x2/sum_x - sum_x/n);
     *intercept = sum_y/n - (*slope)*sum_x/n;
 }
 

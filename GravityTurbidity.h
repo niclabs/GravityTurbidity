@@ -6,14 +6,14 @@
 class GravityTurbidity {
 public:
     GravityTurbidity(int device=0);
-    double getTurbidity(double A, double alpha, int analog);
-    double getTurbidity(int analog);
-    void setLowCalibrationPoint(int analog, double ntu);
-    void setHighCalibrationPoint(int analog, double ntu);
-    void calibrate(int *analog_values, double *ntu_values, int n,
-                                       double *A, double *alpha);
-    void calibrate(int *analog_values, double *ntu_values, int n);
-    void calibrate(double *A, double *alpha);
+    float getTurbidity(float A, float alpha, int analog);
+    float getTurbidity(int analog);
+    void setLowCalibrationPoint(int analog, float ntu);
+    void setHighCalibrationPoint(int analog, float ntu);
+    void calibrate(int *analog_values, float *ntu_values, int n,
+                                       float *A, float *alpha);
+    void calibrate(int *analog_values, float *ntu_values, int n);
+    void calibrate(float *A, float *alpha);
     void calibrate();
     bool exportCalibration();
     bool loadCalibration();
@@ -21,11 +21,11 @@ public:
 
 private:
     int low_turbidity_analog, high_turbidity_analog;
-    double low_turbidity_ntu, high_turbidity_ntu;
-    double A, alpha;
+    float low_turbidity_ntu, high_turbidity_ntu;
+    float A, alpha;
 
-    void linear_fit_id(int *xs, double *ys, int n,
-                                double *slope, double *intercept);
+    void linear_fit_if(int *xs, float *ys, int n,
+                                float *slope, float *intercept);
     void float_to_hex(float fvalue);
 };
 
