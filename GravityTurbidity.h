@@ -13,6 +13,7 @@ public:
     void calibrate(int *analog_values, double *ntu_values, int n);
     void calibrate(double *A, double *alpha);
     void calibrate();
+    bool export_calibration();
 
 private:
     int low_turbidity_analog, high_turbidity_analog;
@@ -21,7 +22,7 @@ private:
 
     void linear_fit_id(int *xs, double *ys, int n,
                                 double *slope, double *intercept);
-
+    void float_to_hex(float fvalue);
 };
 
 #endif // GRAVITY_TURBIDITY_H
