@@ -1,11 +1,38 @@
 #include "GravityTurbidity.h"
 #include <math.h> // exp, log
 
+#ifdef ARDUINO
+#include <EEPROM.h>
+#else
+#include <stdio.h>
+#endif // ARDUINO
+
+
+#define EEPROM_read(address, dest) { \
+        	byte *_dest = (byte*)&(dest); \
+        	for(int i=0; i < sizeof(dest); i++) { \
+        		_dest[i]=EEPROM.read(address+i);  \
+        	} \
+        } \
+
+#define EEPROM_write(address, src) { \
+        	byte *_src = (byte*)&(src); \
+        	for(int i=0; i < sizeof(src); i++) {  \
+        		EEPROM.update(address+i, _src[i]); \
+        	} \
+        }
+
+
 // public
 
-GravityTurbidity::GravityTurbidity() {
+GravityTurbidity::GravityTurbidity(int device) {
+    /* Will use 8 bytes in EEPROM (one DEVICE_MEM_OFFSET block):
+     *  float A = EEPROM[mem_offset]
+     *  float alpha = EEPROM[mem_offset+4]
+     * */
     this->A = 0;
     this->alpha = 0;
+    this->mem_offset = device*DEVICE_MEM_OFFSET;
 }
 
 void GravityTurbidity::setLowCalibrationPoint(int analog, double ntu) {
@@ -73,7 +100,7 @@ double GravityTurbidity::getTurbidity(int analog) {
     return getTurbidity(A, alpha, analog);
 }
 
-bool GravityTurbidity::export_calibration() {
+bool GravityTurbidity::exportCalibration() {
     if (this->A == 0 || this->alpha == 0) {
 #ifdef ARDUINO
         Serial.println(F("[export] Calibration incomplete."));
@@ -97,6 +124,29 @@ bool GravityTurbidity::export_calibration() {
 #endif // ARDUINO
     float_to_hex(this->alpha);
 
+    return 1;
+}
+
+bool GravityTurbidity::loadCalibration() {
+    float loaded_A, loaded_alpha;
+    EEPROM_read(this->mem_offset, loaded_A);
+    EEPROM_read(this->mem_offset+4, loaded_alpha);
+
+    if ((*(uint32_t*)&loaded_A)==0xFFFFFFFF ||
+        (*(uint32_t*)&loaded_alpha)==0xFFFFFFFF) {
+        return 0;
+    }
+    this->A = loaded_A;
+    this->alpha = loaded_alpha;
+    return 1;
+}
+
+bool GravityTurbidity::saveCalibration() {
+    if (this->A == 0 || this->alpha == 0) {
+        return 0;
+    }
+    EEPROM_write(this->mem_offset, this->A);
+    EEPROM_write(this->mem_offset+4, this->alpha);
     return 1;
 }
 

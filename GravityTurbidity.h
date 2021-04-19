@@ -1,9 +1,11 @@
 #ifndef GRAVITY_TURBIDITY_H
 #define GRAVITY_TURBIDITY_H
 
+#define DEVICE_MEM_OFFSET 8
+
 class GravityTurbidity {
 public:
-    GravityTurbidity();
+    GravityTurbidity(int device=0);
     double getTurbidity(double A, double alpha, int analog);
     double getTurbidity(int analog);
     void setLowCalibrationPoint(int analog, double ntu);
@@ -13,7 +15,9 @@ public:
     void calibrate(int *analog_values, double *ntu_values, int n);
     void calibrate(double *A, double *alpha);
     void calibrate();
-    bool export_calibration();
+    bool exportCalibration();
+    bool loadCalibration();
+    bool saveCalibration();
 
 private:
     int low_turbidity_analog, high_turbidity_analog;
