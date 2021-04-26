@@ -16,5 +16,6 @@ getTurbidity	KEYWORD2
 setLowCalibrationPoint	KEYWORD2
 setHighCalibrationPoint	KEYWORD2
 calibrate	KEYWORD2
-export_calibration  KEYWORD2
-
+exportCalibration  KEYWORD2
+loadCalibration    KEYWORD2
+saveCalibration    KEYWORD2

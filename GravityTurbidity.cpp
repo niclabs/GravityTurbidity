@@ -33,6 +33,7 @@ GravityTurbidity::GravityTurbidity(int device) {
     this->A = 0;
     this->alpha = 0;
     this->mem_offset = device*DEVICE_MEM_OFFSET;
+    loadCalibration();
 }
 
 void GravityTurbidity::setLowCalibrationPoint(int analog, float ntu) {
@@ -69,7 +70,7 @@ void GravityTurbidity::calibrate(int *analog_values, float *ntu_values, int n,
         ntu_values[i] = log(ntu_values[i]);
     }
     float slope, intercept;
-    linear_fit_id(analog_values, ntu_values, n, &slope, &intercept);
+    linear_fit_if(analog_values, ntu_values, n, &slope, &intercept);
     *A = exp(intercept);
     *alpha = slope;
 }
@@ -101,6 +102,11 @@ float GravityTurbidity::getTurbidity(int analog) {
 }
 
 bool GravityTurbidity::exportCalibration() {
+    /* Exports calibration (this->A and this->alpha) to stdout.
+     * A and alpha are 4-byte floats, printed as hexadecimal.
+     *
+     * Returns true if A or alpha are valid (non-zero) */
+
     if (this->A == 0 || this->alpha == 0) {
 #ifdef ARDUINO
         Serial.println(F("[export] Calibration incomplete."));
@@ -127,7 +133,14 @@ bool GravityTurbidity::exportCalibration() {
     return 1;
 }
 
+void GravityTurbidity::importCalibration(uint32_t A_hex, uint32_t alpha_hex) {
+    this->A = *((float*)&A_hex);
+    this->alpha = *((float*)&alpha_hex);
+}
+
 bool GravityTurbidity::loadCalibration() {
+    /* Loads calibration (this->A and this->alpha) from EEPROM
+     * Returns true if stored calibration is valid (non-zero) */
     float loaded_A, loaded_alpha;
     EEPROM_read(this->mem_offset, loaded_A);
     EEPROM_read(this->mem_offset+4, loaded_alpha);
@@ -142,6 +155,8 @@ bool GravityTurbidity::loadCalibration() {
 }
 
 bool GravityTurbidity::saveCalibration() {
+    /* Stores calibration (this->A and this->alpha) to EEPROM
+     * Returns true if A or alpha are valid (non-zero) */
     if (this->A == 0 || this->alpha == 0) {
         return 0;
     }
@@ -193,8 +208,10 @@ void GravityTurbidity::float_to_hex(float fvalue) {
     for(int sh=24; sh>=0; sh-=8) {
         uint8_t hex = (value>>sh)&0xFF;
 #ifdef ARDUINO
-        Serial.print(hex < 0x10 ? '0' : '');
-        Serial.print(hex);
+        if (hex < 0x10) {
+            Serial.print('0');
+        }
+        Serial.print(hex, HEX);
 #else
         printf("%02x", hex);
 #endif // ARDUINO
